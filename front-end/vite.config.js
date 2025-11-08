@@ -7,10 +7,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: true, // Needed for Docker
     proxy: {
       '/api': {
-        target: 'http://backend:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false
       }
