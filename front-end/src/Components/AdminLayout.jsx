@@ -12,7 +12,7 @@ const AdminLayout = () => {
       <Navigation />
       <div className="flex">
         <AdminSideBar />
-        <main className={`flex-1 xs:p-1 md:p-4 xs:ml-20 ${collapsed ? "md:ml-20" : "md:ml-64"} transition-all duration-300`}>
+        <main className={`flex-1 xs:p-1 md:p-4 xs:ml-0 ${collapsed ? "md:ml-20" : "md:ml-64"} transition-all duration-300`}>
           <Outlet />
           <Footer />
         </main>

@@ -1,51 +1,81 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import axiosInstance from '../utils/axiosInstance';
-import { ModernForm, FormGroup, FormRow, FormLabel, FormInput, FormButton } from '../Components/ModernForm';
-import CustomConfirmDialog from '../Components/CustomConfirmDialog';
-import { Search, Filter } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from "react";
+import axiosInstance from "../utils/axiosInstance";
+import {
+  ModernForm,
+  FormGroup,
+  FormRow,
+  FormLabel,
+  FormInput,
+  FormButton,
+} from "../Components/ModernForm";
+import CustomConfirmDialog from "../Components/CustomConfirmDialog";
+import { Search, Filter } from "lucide-react";
 
 const AdminDepartmentManager = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [formData, setFormData] = useState({
-    departmentId: '',
-    departmentName: '',
-    headOfDepartment: '',
-    email: ''
+    departmentId: "",
+    departmentName: "",
+    headOfDepartment: "",
+    email: "",
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [departmentIdToDelete, setDepartmentIdToDelete] = useState(null);
-  
+
   // Search and filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    departmentName: '',
-    headOfDepartment: '',
-    email: ''
+    departmentName: "",
+    headOfDepartment: "",
+    email: "",
   });
 
   // Filtered departments based on search and filters
   const filteredDepartments = useMemo(() => {
-    return departments.filter(department => {
+    return departments.filter((department) => {
       // Apply search term
-      const matchesSearch = !searchTerm || 
-        department.departmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        department.departmentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (department.headOfDepartment && department.headOfDepartment.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (department.email && department.email.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+      const matchesSearch =
+        !searchTerm ||
+        department.departmentId
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        department.departmentName
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (department.headOfDepartment &&
+          department.headOfDepartment
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) ||
+        (department.email &&
+          department.email.toLowerCase().includes(searchTerm.toLowerCase()));
+
       // Apply filters
-      const matchesDepartmentName = !filters.departmentName || 
-        department.departmentName.toLowerCase().includes(filters.departmentName.toLowerCase());
-      const matchesHeadOfDepartment = !filters.headOfDepartment || 
-        (department.headOfDepartment && department.headOfDepartment.toLowerCase().includes(filters.headOfDepartment.toLowerCase()));
-      const matchesEmail = !filters.email || 
-        (department.email && department.email.toLowerCase().includes(filters.email.toLowerCase()));
-      
-      return matchesSearch && matchesDepartmentName && matchesHeadOfDepartment && matchesEmail;
+      const matchesDepartmentName =
+        !filters.departmentName ||
+        department.departmentName
+          .toLowerCase()
+          .includes(filters.departmentName.toLowerCase());
+      const matchesHeadOfDepartment =
+        !filters.headOfDepartment ||
+        (department.headOfDepartment &&
+          department.headOfDepartment
+            .toLowerCase()
+            .includes(filters.headOfDepartment.toLowerCase()));
+      const matchesEmail =
+        !filters.email ||
+        (department.email &&
+          department.email.toLowerCase().includes(filters.email.toLowerCase()));
+
+      return (
+        matchesSearch &&
+        matchesDepartmentName &&
+        matchesHeadOfDepartment &&
+        matchesEmail
+      );
     });
   }, [departments, searchTerm, filters]);
 
@@ -55,19 +85,25 @@ const AdminDepartmentManager = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axiosInstance.get('/academic/departments');
+      const response = await axiosInstance.get("/academic/departments");
       // Ensure we're working with an array
       if (Array.isArray(response.data)) {
         setDepartments(response.data);
       } else {
-        console.error('Unexpected response format for departments:', response.data);
+        console.error(
+          "Unexpected response format for departments:",
+          response.data
+        );
         setDepartments([]);
-        setError('Unexpected data format received for departments');
+        setError("Unexpected data format received for departments");
       }
       setLoading(false);
     } catch (error) {
-      console.error('Failed to fetch departments:', error);
-      setError('Failed to fetch departments: ' + (error.response?.data?.message || error.message));
+      console.error("Failed to fetch departments:", error);
+      setError(
+        "Failed to fetch departments: " +
+          (error.response?.data?.message || error.message)
+      );
       setDepartments([]);
       setLoading(false);
     }
@@ -77,15 +113,15 @@ const AdminDepartmentManager = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -94,25 +130,31 @@ const AdminDepartmentManager = () => {
     try {
       if (editingDepartment) {
         // Update existing department
-        await axiosInstance.put(`/academic/departments/${formData.departmentId}`, formData);
+        await axiosInstance.put(
+          `/academic/departments/${formData.departmentId}`,
+          formData
+        );
       } else {
         // Create new department
-        await axiosInstance.post('/academic/departments', formData);
+        await axiosInstance.post("/academic/departments", formData);
       }
-      
+
       // Reset form and refresh data
       setFormData({
-        departmentId: '',
-        departmentName: '',
-        headOfDepartment: '',
-        email: ''
+        departmentId: "",
+        departmentName: "",
+        headOfDepartment: "",
+        email: "",
       });
       setEditingDepartment(null);
       setShowForm(false);
       fetchDepartments();
     } catch (error) {
-      console.error('Failed to save department:', error);
-      setError('Failed to save department: ' + (error.response?.data?.message || error.message));
+      console.error("Failed to save department:", error);
+      setError(
+        "Failed to save department: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -120,8 +162,8 @@ const AdminDepartmentManager = () => {
     setFormData({
       departmentId: department.departmentId,
       departmentName: department.departmentName,
-      headOfDepartment: department.headOfDepartment || '',
-      email: department.email || ''
+      headOfDepartment: department.headOfDepartment || "",
+      email: department.email || "",
     });
     setEditingDepartment(department);
     setShowForm(true);
@@ -134,11 +176,16 @@ const AdminDepartmentManager = () => {
 
   const confirmDelete = async () => {
     try {
-      await axiosInstance.delete(`/academic/departments/${departmentIdToDelete}`);
+      await axiosInstance.delete(
+        `/academic/departments/${departmentIdToDelete}`
+      );
       fetchDepartments();
     } catch (error) {
-      console.error('Failed to delete department:', error);
-      setError('Failed to delete department: ' + (error.response?.data?.message || error.message));
+      console.error("Failed to delete department:", error);
+      setError(
+        "Failed to delete department: " +
+          (error.response?.data?.message || error.message)
+      );
     } finally {
       setShowConfirmDialog(false);
       setDepartmentIdToDelete(null);
@@ -152,31 +199,31 @@ const AdminDepartmentManager = () => {
 
   const handleCancel = () => {
     setFormData({
-      departmentId: '',
-      departmentName: '',
-      headOfDepartment: '',
-      email: ''
+      departmentId: "",
+      departmentName: "",
+      headOfDepartment: "",
+      email: "",
     });
     setEditingDepartment(null);
     setShowForm(false);
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
+    setSearchTerm("");
     setFilters({
-      departmentName: '',
-      headOfDepartment: '',
-      email: ''
+      departmentName: "",
+      headOfDepartment: "",
+      email: "",
     });
   };
 
   const removeFilter = (filterKey) => {
-    if (filterKey === 'search') {
-      setSearchTerm('');
+    if (filterKey === "search") {
+      setSearchTerm("");
     } else {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        [filterKey]: ''
+        [filterKey]: "",
       }));
     }
   };
@@ -184,10 +231,20 @@ const AdminDepartmentManager = () => {
   // Get active filters for display
   const activeFilters = useMemo(() => {
     const filtersList = [];
-    if (searchTerm) filtersList.push({ key: 'search', label: `Search: ${searchTerm}` });
-    if (filters.departmentName) filtersList.push({ key: 'departmentName', label: `Department: ${filters.departmentName}` });
-    if (filters.headOfDepartment) filtersList.push({ key: 'headOfDepartment', label: `Head: ${filters.headOfDepartment}` });
-    if (filters.email) filtersList.push({ key: 'email', label: `Email: ${filters.email}` });
+    if (searchTerm)
+      filtersList.push({ key: "search", label: `Search: ${searchTerm}` });
+    if (filters.departmentName)
+      filtersList.push({
+        key: "departmentName",
+        label: `Department: ${filters.departmentName}`,
+      });
+    if (filters.headOfDepartment)
+      filtersList.push({
+        key: "headOfDepartment",
+        label: `Head: ${filters.headOfDepartment}`,
+      });
+    if (filters.email)
+      filtersList.push({ key: "email", label: `Email: ${filters.email}` });
     return filtersList;
   }, [searchTerm, filters]);
 
@@ -195,7 +252,9 @@ const AdminDepartmentManager = () => {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Department Management</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">
+            Department Management
+          </h1>
           <p>Loading...</p>
         </div>
       </div>
@@ -203,16 +262,15 @@ const AdminDepartmentManager = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="xs:p-2 md:p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-4">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Department Management</h1>
-          <FormButton
-            variant="primary"
-            onClick={() => setShowForm(!showForm)}
-          >
-            {showForm ? 'Cancel' : 'Add New'}
+        <div className="flex justify-between items-center mb-6 gap-3">
+          <h1 className="xs:text-lg md:text-3xl font-bold text-gray-800">
+            Department Management
+          </h1>
+          <FormButton variant="primary" onClick={() => setShowForm(!showForm)}>
+            <h1 className="xs:text-xs md:text-xl">{showForm ? "Cancel" : "Add New"}</h1>
           </FormButton>
         </div>
 
@@ -288,10 +346,12 @@ const AdminDepartmentManager = () => {
           {/* Active Filters Display */}
           {activeFilters.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Active Filters:
+              </span>
               {activeFilters.map((filter) => (
-                <span 
-                  key={filter.key} 
+                <span
+                  key={filter.key}
                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                 >
                   {filter.label}
@@ -301,8 +361,17 @@ const AdminDepartmentManager = () => {
                     onClick={() => removeFilter(filter.key)}
                   >
                     <span className="sr-only">Remove filter</span>
-                    <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
-                      <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
+                    <svg
+                      className="h-2 w-2"
+                      stroke="currentColor"
+                      fill="none"
+                      viewBox="0 0 8 8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeWidth="1.5"
+                        d="M1 1l6 6m0-6L1 7"
+                      />
                     </svg>
                   </button>
                 </span>
@@ -318,18 +387,31 @@ const AdminDepartmentManager = () => {
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-bold text-gray-800">
-                    {editingDepartment ? 'Edit Department' : 'Add New Department'}
+                    {editingDepartment
+                      ? "Edit Department"
+                      : "Add New Department"}
                   </h2>
-                  <button 
+                  <button
                     onClick={handleCancel}
                     className="text-gray-500 hover:text-gray-700"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
-                
+
                 <ModernForm onSubmit={handleSubmit}>
                   <FormRow>
                     <FormGroup>
@@ -343,7 +425,7 @@ const AdminDepartmentManager = () => {
                         disabled={editingDepartment}
                       />
                     </FormGroup>
-                    
+
                     <FormGroup>
                       <FormLabel required>Department Name</FormLabel>
                       <FormInput
@@ -355,7 +437,7 @@ const AdminDepartmentManager = () => {
                       />
                     </FormGroup>
                   </FormRow>
-                  
+
                   <FormRow>
                     <FormGroup>
                       <FormLabel>Head of Department</FormLabel>
@@ -366,7 +448,7 @@ const AdminDepartmentManager = () => {
                         onChange={handleInputChange}
                       />
                     </FormGroup>
-                    
+
                     <FormGroup>
                       <FormLabel>Email</FormLabel>
                       <FormInput
@@ -377,7 +459,7 @@ const AdminDepartmentManager = () => {
                       />
                     </FormGroup>
                   </FormRow>
-                  
+
                   <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
                     <FormButton
                       type="button"
@@ -386,11 +468,8 @@ const AdminDepartmentManager = () => {
                     >
                       Cancel
                     </FormButton>
-                    <FormButton
-                      type="submit"
-                      variant="success"
-                    >
-                      {editingDepartment ? 'Update' : 'Create'}
+                    <FormButton type="submit" variant="success">
+                      {editingDepartment ? "Update" : "Create"}
                     </FormButton>
                   </div>
                 </ModernForm>
@@ -400,7 +479,7 @@ const AdminDepartmentManager = () => {
         )}
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-lg shadow">
+        <div className="overflow-x-auto rounded-lg shadow xs:hidden md:block">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -422,56 +501,186 @@ const AdminDepartmentManager = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {Array.isArray(filteredDepartments) && filteredDepartments.map((department) => (
-                <tr key={department.departmentId} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {department.departmentId}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {department.departmentName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {department.headOfDepartment || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {department.email || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(department)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 mr-2"
-                      title="Edit"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(department.departmentId)}
-                      className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
-                      title="Delete"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {Array.isArray(filteredDepartments) &&
+                filteredDepartments.map((department) => (
+                  <tr
+                    key={department.departmentId}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {department.departmentId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {department.departmentName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {department.headOfDepartment || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {department.email || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleEdit(department)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 mr-2"
+                        title="Edit"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(department.departmentId)}
+                        className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
+                        title="Delete"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
-          
+
           {(!Array.isArray(departments) || departments.length === 0) && (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500 text-lg">No departments found</p>
             </div>
           )}
-          
-          {Array.isArray(filteredDepartments) && filteredDepartments.length === 0 && searchTerm && (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <p className="text-gray-500 text-lg">No departments match your search criteria</p>
+
+          {Array.isArray(filteredDepartments) &&
+            filteredDepartments.length === 0 &&
+            searchTerm && (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-500 text-lg">
+                  No departments match your search criteria
+                </p>
+              </div>
+            )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xs:block md:hidden ">
+          {Array.isArray(filteredDepartments) &&
+            filteredDepartments.map((department) => (
+              <div
+                key={department.departmentId}
+                className="bg-white shadow rounded-xl p-5 flex flex-col justify-between hover:shadow-lg transition-shadow mb-3"
+              >
+                {/* Header */}
+                <div className="mb-3">
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    {department.departmentName}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    ID: {department.departmentId}
+                  </p>
+                </div>
+
+                {/* Details */}
+                <div className="text-sm text-gray-600 space-y-1 mb-4">
+                  <p>
+                    <span className="font-medium text-gray-700">
+                      Head of Department:
+                    </span>{" "}
+                    {department.headOfDepartment || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-700">Email:</span>{" "}
+                    {department.email || "N/A"}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-2 border-t pt-3">
+                  <button
+                    onClick={() => handleEdit(department)}
+                    className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition"
+                    title="Edit"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414
+              a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(department.departmentId)}
+                    className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition"
+                    title="Delete"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862
+              a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4
+              a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+
+          {/* No Departments */}
+          {(!Array.isArray(departments) || departments.length === 0) && (
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg">
+              <p className="text-gray-500 text-lg">No departments found</p>
             </div>
           )}
+
+          {/* No Search Results */}
+          {Array.isArray(filteredDepartments) &&
+            filteredDepartments.length === 0 &&
+            searchTerm && (
+              <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-500 text-lg">
+                  No departments match your search criteria
+                </p>
+              </div>
+            )}
         </div>
 
         {/* Custom Confirm Dialog */}

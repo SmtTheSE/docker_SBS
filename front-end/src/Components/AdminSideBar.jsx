@@ -11,6 +11,7 @@ import {
   faCalendarAlt,
   faClipboardList,
   faBars,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState, useEffect } from "react";
@@ -245,14 +246,19 @@ const AdminSideBar = () => {
     <motion.nav
       animate={{ width: collapsed ? "5rem" : "16rem" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="fixed z-10 bg-iconic h-screen flex flex-col justify-start items-start shadow-xl xs:p-1 md:p-3 overflow-hidden"
+      className={`fixed z-10 bg-iconic h-screen flex flex-col justify-start items-start shadow-xl xs:p-1 md:p-3 overflow-hidden xs:right-0 xs:${
+        collapsed ? "hidden" : "block"
+      } md:left-0 md:block transition-all duration-300`}
     >
-      {/* Toggle button inside sidebar */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="text-white w-full px-3 py-3 rounded-md hover:bg-red-700 transition mb-2 flex items-center"
+        className="text-white w-full px-3 py-3 rounded-md hover:bg-red-700 transition mb-2 flex items-center xs:hidden md:block"
       >
-        <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
+        {collapsed ? (
+          <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
+        ) : (
+          <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
+        )}
       </button>
 
       {/* Sidebar Menus */}

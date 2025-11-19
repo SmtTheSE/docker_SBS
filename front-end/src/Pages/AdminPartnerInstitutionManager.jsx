@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "../api/axios";
-import { Edit, Trash2, Plus, Save, X, Search, Filter } from 'lucide-react'; // Import icons
-import CustomConfirmDialog from '../Components/CustomConfirmDialog';
-import { ModernForm, FormGroup, FormRow, FormLabel, FormInput, FormButton } from '../Components/ModernForm';
+import { Edit, Trash2, Plus, Save, X, Search, Filter } from "lucide-react"; // Import icons
+import CustomConfirmDialog from "../Components/CustomConfirmDialog";
+import {
+  ModernForm,
+  FormGroup,
+  FormRow,
+  FormLabel,
+  FormInput,
+  FormButton,
+} from "../Components/ModernForm";
 
 const AdminPartnerInstitutionManager = () => {
   const [partnerInstitutions, setPartnerInstitutions] = useState([]);
@@ -10,7 +17,7 @@ const AdminPartnerInstitutionManager = () => {
     partnerInstitutionId: "",
     institutionName: "",
     websiteUrl: "",
-    email: ""
+    email: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false); // 添加状态控制创建表单显示
@@ -18,16 +25,16 @@ const AdminPartnerInstitutionManager = () => {
   const [error, setError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [institutionIdToDelete, setInstitutionIdToDelete] = useState(null);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  
+
   // Search and filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    name: '',
-    email: ''
+    name: "",
+    email: "",
   });
 
   useEffect(() => {
@@ -38,7 +45,7 @@ const AdminPartnerInstitutionManager = () => {
     try {
       setLoading(true);
       setError("");
-      
+
       const response = await axios.get("/admin/partner-institutions");
       setPartnerInstitutions(response.data);
     } catch (error) {
@@ -57,42 +64,54 @@ const AdminPartnerInstitutionManager = () => {
 
   // Handle filter change
   const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
     setCurrentPage(1); // Reset to first page when filtering
   };
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchTerm('');
+    setSearchTerm("");
     setFilters({
-      name: '',
-      email: ''
+      name: "",
+      email: "",
     });
     setCurrentPage(1);
   };
 
   // Filter and search partner institutions
   const filteredPartnerInstitutions = useMemo(() => {
-    return partnerInstitutions.filter(institution => {
+    return partnerInstitutions.filter((institution) => {
       // Apply search term filter
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
-        if (!(institution.partnerInstitutionId.toLowerCase().includes(term) ||
-              institution.institutionName.toLowerCase().includes(term))) {
+        if (
+          !(
+            institution.partnerInstitutionId.toLowerCase().includes(term) ||
+            institution.institutionName.toLowerCase().includes(term)
+          )
+        ) {
           return false;
         }
       }
 
       // Apply name filter
-      if (filters.name && !institution.institutionName.toLowerCase().includes(filters.name.toLowerCase())) {
+      if (
+        filters.name &&
+        !institution.institutionName
+          .toLowerCase()
+          .includes(filters.name.toLowerCase())
+      ) {
         return false;
       }
 
       // Apply email filter
-      if (filters.email && !institution.email.toLowerCase().includes(filters.email.toLowerCase())) {
+      if (
+        filters.email &&
+        !institution.email.toLowerCase().includes(filters.email.toLowerCase())
+      ) {
         return false;
       }
 
@@ -104,22 +123,27 @@ const AdminPartnerInstitutionManager = () => {
   const getCurrentPartnerInstitutions = () => {
     const indexOfLastInstitution = currentPage * itemsPerPage;
     const indexOfFirstInstitution = indexOfLastInstitution - itemsPerPage;
-    return filteredPartnerInstitutions.slice(indexOfFirstInstitution, indexOfLastInstitution);
+    return filteredPartnerInstitutions.slice(
+      indexOfFirstInstitution,
+      indexOfLastInstitution
+    );
   };
 
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   // Previous page
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   // Next page
   const nextPage = () => {
-    if (currentPage < Math.ceil(filteredPartnerInstitutions.length / itemsPerPage)) {
+    if (
+      currentPage < Math.ceil(filteredPartnerInstitutions.length / itemsPerPage)
+    ) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -128,7 +152,7 @@ const AdminPartnerInstitutionManager = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
@@ -137,7 +161,10 @@ const AdminPartnerInstitutionManager = () => {
     try {
       setError("");
       if (isEditing) {
-        await axios.put(`/admin/partner-institutions/${formData.partnerInstitutionId}`, formData);
+        await axios.put(
+          `/admin/partner-institutions/${formData.partnerInstitutionId}`,
+          formData
+        );
       } else {
         await axios.post("/admin/partner-institutions", formData);
       }
@@ -155,7 +182,7 @@ const AdminPartnerInstitutionManager = () => {
       partnerInstitutionId: institution.partnerInstitutionId,
       institutionName: institution.institutionName,
       websiteUrl: institution.websiteUrl || "",
-      email: institution.email || ""
+      email: institution.email || "",
     });
     setIsEditing(true);
     setShowCreateForm(true); // 显示编辑表单
@@ -168,10 +195,15 @@ const AdminPartnerInstitutionManager = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`/admin/partner-institutions/${institutionIdToDelete}`);
+      await axios.delete(
+        `/admin/partner-institutions/${institutionIdToDelete}`
+      );
       // If we're on the last page and it becomes empty, go to previous page
-      const updatedInstitutions = filteredPartnerInstitutions.filter(institution => institution.partnerInstitutionId !== institutionIdToDelete);
-      const totalPages = Math.ceil((updatedInstitutions.length) / itemsPerPage);
+      const updatedInstitutions = filteredPartnerInstitutions.filter(
+        (institution) =>
+          institution.partnerInstitutionId !== institutionIdToDelete
+      );
+      const totalPages = Math.ceil(updatedInstitutions.length / itemsPerPage);
       if (currentPage > totalPages && totalPages > 0) {
         setCurrentPage(totalPages);
       }
@@ -195,7 +227,7 @@ const AdminPartnerInstitutionManager = () => {
       partnerInstitutionId: "",
       institutionName: "",
       websiteUrl: "",
-      email: ""
+      email: "",
     });
     setIsEditing(false);
     setShowCreateForm(false); // 隐藏表单
@@ -203,8 +235,10 @@ const AdminPartnerInstitutionManager = () => {
 
   // Get current partner institutions
   const currentPartnerInstitutions = getCurrentPartnerInstitutions();
-  const totalPages = Math.ceil(filteredPartnerInstitutions.length / itemsPerPage);
-  
+  const totalPages = Math.ceil(
+    filteredPartnerInstitutions.length / itemsPerPage
+  );
+
   // Check if any filters are active
   const hasActiveFilters = searchTerm || filters.name || filters.email;
 
@@ -212,7 +246,9 @@ const AdminPartnerInstitutionManager = () => {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Partner Institution Management</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">
+            Partner Institution Management
+          </h1>
           <div className="text-center py-12 bg-gray-50 rounded-lg">
             <p className="text-gray-500 text-lg">Loading...</p>
           </div>
@@ -222,18 +258,19 @@ const AdminPartnerInstitutionManager = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="xs:p-2 md:p-4 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-4">
+        <div className="flex justify-between items-center mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="xs:text-md sm:text-xl md:text-3xl font-bold text-gray-800">
               Admin Panel - Partner Institution Management
             </h1>
-            <p className="text-gray-600">
-              Manage partner institutions • Total: {filteredPartnerInstitutions.length}
+            <p className="text-gray-600 xs:text-sm md:text-xl">
+              Manage partner institutions • Total:{" "}
+              {filteredPartnerInstitutions.length}
             </p>
           </div>
-          
+
           <FormButton
             variant="primary"
             onClick={() => {
@@ -242,16 +279,16 @@ const AdminPartnerInstitutionManager = () => {
             }}
           >
             <Plus size={20} />
-            Create New Institution
+            <h1 className="xs:hidden md:block"> Create New Institution</h1>
           </FormButton>
         </div>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
             {error}
           </div>
         )}
-        
+
         {/* Search and Filter Section */}
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -268,32 +305,32 @@ const AdminPartnerInstitutionManager = () => {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             {/* Name Filter */}
             <div>
               <input
                 type="text"
                 value={filters.name}
-                onChange={(e) => handleFilterChange('name', e.target.value)}
+                onChange={(e) => handleFilterChange("name", e.target.value)}
                 placeholder="Filter by Name"
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             {/* Email Filter */}
             <div>
               <input
                 type="text"
                 value={filters.email}
-                onChange={(e) => handleFilterChange('email', e.target.value)}
+                onChange={(e) => handleFilterChange("email", e.target.value)}
                 placeholder="Filter by Email"
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             {/* Clear Filters Button */}
             <div className="flex items-end">
-              {(hasActiveFilters) && (
+              {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -303,41 +340,43 @@ const AdminPartnerInstitutionManager = () => {
               )}
             </div>
           </div>
-          
+
           {/* Active Filters Display */}
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Active filters:</span>
-              
+              <span className="text-sm font-medium text-gray-700">
+                Active filters:
+              </span>
+
               {searchTerm && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Search: {searchTerm}
-                  <button 
-                    onClick={() => setSearchTerm('')}
+                  <button
+                    onClick={() => setSearchTerm("")}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
-              
+
               {filters.name && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Name: {filters.name}
-                  <button 
-                    onClick={() => handleFilterChange('name', '')}
+                  <button
+                    onClick={() => handleFilterChange("name", "")}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
-              
+
               {filters.email && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Email: {filters.email}
-                  <button 
-                    onClick={() => handleFilterChange('email', '')}
+                  <button
+                    onClick={() => handleFilterChange("email", "")}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
@@ -347,7 +386,7 @@ const AdminPartnerInstitutionManager = () => {
             </div>
           )}
         </div>
-        
+
         {/* Create/Edit Form Modal - 使用与其他管理页面相同的样式 */}
         {showCreateForm && (
           <div className="fixed inset-0 bg-opacity-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -355,16 +394,18 @@ const AdminPartnerInstitutionManager = () => {
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-bold text-gray-800">
-                    {isEditing ? "Edit Partner Institution" : "Create New Partner Institution"}
+                    {isEditing
+                      ? "Edit Partner Institution"
+                      : "Create New Partner Institution"}
                   </h2>
-                  <button 
+                  <button
                     onClick={resetForm}
                     className="text-gray-500 hover:text-gray-700"
                   >
-                    <X size={24}/>
+                    <X size={24} />
                   </button>
                 </div>
-                
+
                 <ModernForm onSubmit={handleSubmit}>
                   <FormRow>
                     <FormGroup>
@@ -379,7 +420,7 @@ const AdminPartnerInstitutionManager = () => {
                         placeholder="e.g., PI001"
                       />
                     </FormGroup>
-                    
+
                     <FormGroup>
                       <FormLabel required>Institution Name</FormLabel>
                       <FormInput
@@ -392,7 +433,7 @@ const AdminPartnerInstitutionManager = () => {
                       />
                     </FormGroup>
                   </FormRow>
-                  
+
                   <FormRow>
                     <FormGroup>
                       <FormLabel>Website URL</FormLabel>
@@ -404,7 +445,7 @@ const AdminPartnerInstitutionManager = () => {
                         placeholder="e.g., https://www.example.com"
                       />
                     </FormGroup>
-                    
+
                     <FormGroup>
                       <FormLabel>Email</FormLabel>
                       <FormInput
@@ -416,7 +457,7 @@ const AdminPartnerInstitutionManager = () => {
                       />
                     </FormGroup>
                   </FormRow>
-                  
+
                   <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
                     <FormButton
                       type="button"
@@ -426,11 +467,8 @@ const AdminPartnerInstitutionManager = () => {
                       <X size={20} />
                       Cancel
                     </FormButton>
-                    
-                    <FormButton
-                      type="submit"
-                      variant="success"
-                    >
+
+                    <FormButton type="submit" variant="success">
                       <Save size={20} />
                       {isEditing ? "Update Institution" : "Create Institution"}
                     </FormButton>
@@ -443,15 +481,15 @@ const AdminPartnerInstitutionManager = () => {
 
         {/* Table to display partner institutions */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-700 border-b-2 border-gray-200 pb-2">
+          <h2 className="xs:text-md md:text-xl font-semibold text-gray-700 border-b-2 border-gray-200 pb-2">
             Existing Partner Institutions ({filteredPartnerInstitutions.length})
           </h2>
-          
+
           {filteredPartnerInstitutions.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500 text-lg">
-                {partnerInstitutions.length === 0 
-                  ? "No partner institutions yet" 
+                {partnerInstitutions.length === 0
+                  ? "No partner institutions yet"
                   : "No partner institutions match your search criteria"}
               </p>
               {hasActiveFilters && (
@@ -459,11 +497,13 @@ const AdminPartnerInstitutionManager = () => {
                   Try adjusting your search or filter criteria
                 </p>
               )}
-              <p className="text-gray-400 text-sm mt-2">Click "Create New Institution" to add your first institution</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Click "Create New Institution" to add your first institution
+              </p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-lg shadow">
+              <div className="overflow-x-auto rounded-lg shadow xs:hidden md:block">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -486,7 +526,10 @@ const AdminPartnerInstitutionManager = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentPartnerInstitutions.map((institution) => (
-                      <tr key={institution.partnerInstitutionId} className="hover:bg-gray-50">
+                      <tr
+                        key={institution.partnerInstitutionId}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {institution.partnerInstitutionId}
                         </td>
@@ -508,7 +551,9 @@ const AdminPartnerInstitutionManager = () => {
                             <Edit size={16} />
                           </button>
                           <button
-                            onClick={() => handleDelete(institution.partnerInstitutionId)}
+                            onClick={() =>
+                              handleDelete(institution.partnerInstitutionId)
+                            }
                             className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
                             title="Delete"
                           >
@@ -520,7 +565,70 @@ const AdminPartnerInstitutionManager = () => {
                   </tbody>
                 </table>
               </div>
-              
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xs:block md:hidden">
+                {currentPartnerInstitutions.map((institution) => (
+                  <div
+                    key={institution.partnerInstitutionId}
+                    className="bg-white shadow rounded-lg p-5 hover:shadow-md transition-shadow duration-200 mb-3"
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {institution.institutionName}
+                      </h3>
+                      <span className="text-sm text-gray-500">
+                        ID: {institution.partnerInstitutionId}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <p>
+                        <span className="font-medium text-gray-700">
+                          Website:
+                        </span>{" "}
+                        {institution.websiteUrl ? (
+                          <a
+                            href={institution.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all"
+                          >
+                            {institution.websiteUrl}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </p>
+                      <p>
+                        <span className="font-medium text-gray-700">
+                          Email:
+                        </span>{" "}
+                        {institution.email || "-"}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end gap-2 mt-4">
+                      <button
+                        onClick={() => handleEdit(institution)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200"
+                        title="Edit"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDelete(institution.partnerInstitutionId)
+                        }
+                        className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-6">
@@ -529,14 +637,14 @@ const AdminPartnerInstitutionManager = () => {
                       onClick={prevPage}
                       disabled={currentPage === 1}
                       className={`flex items-center px-3 py-1 rounded-md ${
-                        currentPage === 1 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        currentPage === 1
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       <span className="ml-1">Previous</span>
                     </button>
-                    
+
                     {[...Array(totalPages)].map((_, index) => {
                       const pageNumber = index + 1;
                       return (
@@ -545,22 +653,22 @@ const AdminPartnerInstitutionManager = () => {
                           onClick={() => paginate(pageNumber)}
                           className={`w-10 h-10 rounded-full ${
                             currentPage === pageNumber
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
                           {pageNumber}
                         </button>
                       );
                     })}
-                    
+
                     <button
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
                       className={`flex items-center px-3 py-1 rounded-md ${
-                        currentPage === totalPages 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        currentPage === totalPages
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       <span className="mr-1">Next</span>

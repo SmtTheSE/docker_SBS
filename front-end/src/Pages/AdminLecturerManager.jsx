@@ -1,33 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Save, Edit, X, Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { ModernForm, FormGroup, FormRow, FormLabel, FormInput, FormSelect, FormButton, FormSection } from '../Components/ModernForm';
-import CustomConfirmDialog from '../Components/CustomConfirmDialog';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Save,
+  Edit,
+  X,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react";
+import {
+  ModernForm,
+  FormGroup,
+  FormRow,
+  FormLabel,
+  FormInput,
+  FormSelect,
+  FormButton,
+  FormSection,
+} from "../Components/ModernForm";
+import CustomConfirmDialog from "../Components/CustomConfirmDialog";
 
 const AdminLecturerManager = () => {
   const [lecturers, setLecturers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
-  const[showCreateForm, setShowCreateForm] = useState(false);
-  const [createData,setCreateData] = useState({
-    lecturerId: '',
-    name: '',
-    dateOfBirth: '',
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createData, setCreateData] = useState({
+    lecturerId: "",
+    name: "",
+    dateOfBirth: "",
     teachingExperience: 0,
-    academicTitle: '',
-    departmentId: ''
+    academicTitle: "",
+    departmentId: "",
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [lecturerIdToDelete, setLecturerIdToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false); // 添加删除状态
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  
+
   // Filter and search states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState('All');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterDepartment, setFilterDepartment] = useState("All");
 
   useEffect(() => {
     fetchLecturers();
@@ -35,66 +53,75 @@ const AdminLecturerManager = () => {
   }, []);
 
   const fetchLecturers = async () => {
-    try{
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/admin/lecturers', {
-        credentials:'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:8080/api/admin/lecturers",
+        {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
         }
-      });
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       setLecturers(data);
     } catch (error) {
-      console.error('Failed to fetch lecturers:', error);
+      console.error("Failed to fetch lecturers:", error);
     }
   };
 
   const fetchDepartments = async () => {
-    try{
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/admin/departments', {
-        credentials:'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:8080/api/admin/departments",
+        {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
         }
-      });
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       setDepartments(data);
     } catch (error) {
-      console.error('Failed to fetch departments:', error);
+      console.error("Failed to fetch departments:", error);
       // Fallback to hardcoded departments if API fails
       setDepartments([
-        {departmentId: 'DS', departmentName: 'Data Science' },
-        { departmentId: 'BUS', departmentName: 'Business' },
-        {departmentId: 'HOSP', departmentName: 'Hospitality' }
+        { departmentId: "DS", departmentName: "Data Science" },
+        { departmentId: "BUS", departmentName: "Business" },
+        { departmentId: "HOSP", departmentName: "Hospitality" },
       ]);
     }
   };
 
   // Filter and search lecturers
   const getFilteredLecturers = () => {
-    return lecturers.filter(lecturer => {
+    return lecturers.filter((lecturer) => {
       // Search filter - check multiple fields
-      const matchesSearch = 
+      const matchesSearch =
         lecturer.lecturerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lecturer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (lecturer.academicTitle && lecturer.academicTitle.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+        (lecturer.academicTitle &&
+          lecturer.academicTitle
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()));
+
       // Department filter - match by department name
       let matchesDepartment = true;
-      if (filterDepartment !== 'All') {
+      if (filterDepartment !== "All") {
         matchesDepartment = lecturer.departmentName === filterDepartment;
       }
-      
+
       return matchesSearch && matchesDepartment;
     });
   };
@@ -109,14 +136,14 @@ const AdminLecturerManager = () => {
 
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   // Previous page
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   // Next page
   const nextPage = () => {
     const filteredLecturers = getFilteredLecturers();
@@ -137,57 +164,67 @@ const AdminLecturerManager = () => {
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setFilterDepartment('All');
+    setSearchTerm("");
+    setFilterDepartment("All");
     setCurrentPage(1);
   };
 
   const createNewLecturer = async () => {
     // Validation
-    if (!createData.lecturerId || !createData.name || !createData.dateOfBirth || !createData.departmentId) {
-      alert('Please fill in all required fields');
+    if (
+      !createData.lecturerId ||
+      !createData.name ||
+      !createData.dateOfBirth ||
+      !createData.departmentId
+    ) {
+      alert("Please fill in all required fields");
       return;
     }
 
     try {
-      const token= localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/admin/lecturers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        },
-        body: JSON.stringify({
-          ...createData,
-          dateOfBirth: createData.dateOfBirth ? new Date(createData.dateOfBirth).toISOString().split('T')[0] :null,
-          teachingExperience: parseInt(createData.teachingExperience) ||0
-        }),
-        credentials: 'include'
-      });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:8080/api/admin/lecturers",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify({
+            ...createData,
+            dateOfBirth: createData.dateOfBirth
+              ? new Date(createData.dateOfBirth).toISOString().split("T")[0]
+              : null,
+            teachingExperience: parseInt(createData.teachingExperience) || 0,
+          }),
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
-        alert('Lecturercreated successfully!');
-        
+        alert("Lecturercreated successfully!");
+
         // Reset form
         setCreateData({
-          lecturerId: '',
-          name: '',
-          dateOfBirth: '',
+          lecturerId: "",
+          name: "",
+          dateOfBirth: "",
           teachingExperience: 0,
-          academicTitle:'',
-          departmentId: ''
+          academicTitle: "",
+          departmentId: "",
         });
         setShowCreateForm(false);
         setCurrentPage(1); // Reset to first page
         fetchLecturers(); // Refreshthe list
-      }else {
+      } else {
         const errorText = await response.text();
-        console.error('Create failed:', errorText);
-        alert('Failedto create lecturer: ' + errorText);
+        console.error("Create failed:", errorText);
+        alert("Failedto create lecturer: " + errorText);
       }
-    }catch (error) {
-      console.error('Create error:', error);
-      alert('Network error occurred while creatinglecturer');
+    } catch (error) {
+      console.error("Create error:", error);
+      alert("Network error occurred while creatinglecturer");
     }
   };
 
@@ -195,37 +232,40 @@ const AdminLecturerManager = () => {
     try {
       const updateData = {
         lecturerId: editingId,
-        name: editData.name||'',
-        dateOfBirth:editData.dateOfBirth || '',
+        name: editData.name || "",
+        dateOfBirth: editData.dateOfBirth || "",
         teachingExperience: parseInt(editData.teachingExperience) || 0,
-        academicTitle:editData.academicTitle || '',
-        departmentId: editData.departmentId || ''
+        academicTitle: editData.academicTitle || "",
+        departmentId: editData.departmentId || "",
       };
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://localhost:8080/api/admin/lecturers/${editingId}`, {
-        method: 'PUT',
-        headers:{
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        },
-        body: JSON.stringify(updateData),
-        credentials: 'include'
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/admin/lecturers/${editingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify(updateData),
+          credentials: "include",
+        }
+      );
 
-      if(response.ok) {
-        alert('Lecturer updated successfully!');
+      if (response.ok) {
+        alert("Lecturer updated successfully!");
         setEditingId(null);
         fetchLecturers(); //Refresh thelist
       } else {
         const errorText = await response.text();
-        console.error('Update failed:', errorText);
-        alert('Failed to update lecturer:' + errorText);
+        console.error("Update failed:", errorText);
+        alert("Failed to update lecturer:" + errorText);
       }
     } catch (error) {
-      console.error('Update error:', error);
-      alert('Network error occurred whileupdating lecturer');
+      console.error("Update error:", error);
+      alert("Network error occurred whileupdating lecturer");
     }
   };
 
@@ -237,32 +277,37 @@ const AdminLecturerManager = () => {
   const confirmDelete = async () => {
     setDeleting(true); // 设置删除状态
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/admin/lecturers/${lecturerIdToDelete}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': token ? `Bearer ${token}`: ''
-        },
-        credentials: 'include'
-      });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8080/api/admin/lecturers/${lecturerIdToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
-        alert('Lecturer deleted successfully!');
+        alert("Lecturer deleted successfully!");
         // If we're on the last page and it becomes empty, go to previous page
         const filteredLecturers = getFilteredLecturers();
-        const totalPages = Math.ceil((filteredLecturers.length - 1) / itemsPerPage);
+        const totalPages = Math.ceil(
+          (filteredLecturers.length - 1) / itemsPerPage
+        );
         if (currentPage > totalPages && totalPages > 0) {
           setCurrentPage(totalPages);
         }
         fetchLecturers(); // Refresh the list
       } else {
         const errorText = await response.text();
-        console.error('Delete failed:', errorText);
-        alert('Failed to delete lecturer: ' + errorText);
+        console.error("Delete failed:", errorText);
+        alert("Failed to delete lecturer: " + errorText);
       }
     } catch (error) {
-      console.error('Delete error:', error);
-      alert('Network error occurred while deleting lecturer: ' + error.message);
+      console.error("Delete error:", error);
+      alert("Network error occurred while deleting lecturer: " + error.message);
     } finally {
       setDeleting(false); // 重置删除状态
       setShowConfirmDialog(false);
@@ -281,16 +326,17 @@ const AdminLecturerManager = () => {
   const totalPages = Math.ceil(filteredLecturers.length / itemsPerPage);
 
   return (
-    <div className="mx-autop-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="mx-auto xs:p-2 md:p-4 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-4">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="xs:text-xl md:text-3xl font-bold text-gray-800">
               Admin Panel - Lecturer Management
             </h1>
-            <p className="text-gray-600">
-              Manage lecturer accounts and personal information • Total: {lecturers.length}
+            <p className="text-gray-600 xs:text-xs md:text-xl">
+              Manage lecturer accounts and personal information • Total:{" "}
+              {lecturers.length}
             </p>
           </div>
 
@@ -299,7 +345,7 @@ const AdminLecturerManager = () => {
             onClick={() => setShowCreateForm(!showCreateForm)}
           >
             <Plus size={20} />
-            {showCreateForm ? 'Cancel' : 'Create New Lecturer'}
+            <h1 className="xs:hidden md:block">{showCreateForm ? "Cancel" : "Create New Lecturer"}</h1>
           </FormButton>
         </div>
 
@@ -319,7 +365,7 @@ const AdminLecturerManager = () => {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             {/* Department Filter */}
             <div>
               <select
@@ -328,16 +374,16 @@ const AdminLecturerManager = () => {
                 className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               >
                 <option value="All">All Departments</option>
-                {departments.map(dept => (
+                {departments.map((dept) => (
                   <option key={dept.departmentId} value={dept.departmentName}>
                     {dept.departmentName}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             {/* Clear Filters Button */}
-            {(searchTerm || filterDepartment !== 'All') && (
+            {(searchTerm || filterDepartment !== "All") && (
               <div className="flex items-center">
                 <button
                   onClick={clearFilters}
@@ -357,15 +403,17 @@ const AdminLecturerManager = () => {
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">Create New Lecturer</h3>
-                  <button 
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Create New Lecturer
+                  </h3>
+                  <button
                     onClick={() => setShowCreateForm(false)}
                     className="text-gray-500 hover:text-gray-700"
                   >
-                    <X size={24}/>
+                    <X size={24} />
                   </button>
                 </div>
-                
+
                 <ModernForm>
                   <FormSection title="Personal Information">
                     <FormRow>
@@ -374,44 +422,64 @@ const AdminLecturerManager = () => {
                         <FormInput
                           type="text"
                           value={createData.lecturerId}
-                          onChange={(e) => setCreateData({...createData, lecturerId: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              lecturerId: e.target.value,
+                            })
+                          }
                           placeholder="e.g., LEC001"
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel required>Full Name</FormLabel>
                         <FormInput
                           type="text"
                           value={createData.name}
-                          onChange={(e) => setCreateData({...createData, name: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              name: e.target.value,
+                            })
+                          }
                           placeholder="Full Name"
                         />
                       </FormGroup>
                     </FormRow>
-                    
+
                     <FormRow>
                       <FormGroup>
                         <FormLabel required>Date of Birth</FormLabel>
                         <FormInput
                           type="date"
                           value={createData.dateOfBirth}
-                          onChange={(e) => setCreateData({...createData, dateOfBirth: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              dateOfBirth: e.target.value,
+                            })
+                          }
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel>Academic Title</FormLabel>
                         <FormInput
                           type="text"
                           value={createData.academicTitle}
-                          onChange={(e) => setCreateData({...createData, academicTitle: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              academicTitle: e.target.value,
+                            })
+                          }
                           placeholder="e.g., Professor, Associate Professor"
                         />
                       </FormGroup>
                     </FormRow>
                   </FormSection>
-                  
+
                   <FormSection title="Professional Information">
                     <FormRow>
                       <FormGroup>
@@ -419,20 +487,33 @@ const AdminLecturerManager = () => {
                         <FormInput
                           type="number"
                           value={createData.teachingExperience}
-                          onChange={(e) => setCreateData({...createData, teachingExperience: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              teachingExperience: e.target.value,
+                            })
+                          }
                           placeholder="Years of experience"
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel required>Department</FormLabel>
                         <FormSelect
                           value={createData.departmentId}
-                          onChange={(e) => setCreateData({...createData, departmentId:e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              departmentId: e.target.value,
+                            })
+                          }
                         >
                           <option value="">Select Department</option>
-                          {departments.map(dept => (
-                            <option key={dept.departmentId} value={dept.departmentId}>
+                          {departments.map((dept) => (
+                            <option
+                              key={dept.departmentId}
+                              value={dept.departmentId}
+                            >
                               {dept.departmentName}
                             </option>
                           ))}
@@ -440,7 +521,7 @@ const AdminLecturerManager = () => {
                       </FormGroup>
                     </FormRow>
                   </FormSection>
-                  
+
                   <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
                     <FormButton
                       type="button"
@@ -448,19 +529,19 @@ const AdminLecturerManager = () => {
                       onClick={() => {
                         setShowCreateForm(false);
                         setCreateData({
-                          lecturerId: '',
-                          name: '',
-                          dateOfBirth: '',
+                          lecturerId: "",
+                          name: "",
+                          dateOfBirth: "",
                           teachingExperience: 0,
-                          academicTitle:'',
-                          departmentId: ''
+                          academicTitle: "",
+                          departmentId: "",
                         });
                       }}
                     >
                       <X size={20} />
                       Cancel
                     </FormButton>
-                    
+
                     <FormButton
                       type="button"
                       variant="success"
@@ -485,19 +566,19 @@ const AdminLecturerManager = () => {
           {filteredLecturers.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500 text-lg">
-                {searchTerm || filterDepartment !== 'All'
-                  ? 'No lecturers match your search/filter criteria'
-                  : 'No lecturers yet'}
+                {searchTerm || filterDepartment !== "All"
+                  ? "No lecturers match your search/filter criteria"
+                  : "No lecturers yet"}
               </p>
               <p className="text-gray-400 text-sm mt-2">
-                {searchTerm || filterDepartment !== 'All'
-                  ? 'Try adjusting your search or filter criteria'
+                {searchTerm || filterDepartment !== "All"
+                  ? "Try adjusting your search or filter criteria"
                   : 'Click "Create New Lecturer" to add your first lecturer'}
               </p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-lg shadow">
+              <div className="overflow-x-auto rounded-lg shadow xs:hidden md:block">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -525,8 +606,11 @@ const AdminLecturerManager = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentLecturers.map((lecturer)=> (
-                      <tr key={lecturer.lecturerId} className="hover:bg-gray-50">
+                    {currentLecturers.map((lecturer) => (
+                      <tr
+                        key={lecturer.lecturerId}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {lecturer.lecturerId}
                         </td>
@@ -540,24 +624,26 @@ const AdminLecturerManager = () => {
                           {lecturer.teachingExperience} years
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {lecturer.academicTitle || 'N/A'}
+                          {lecturer.academicTitle || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {lecturer.departmentId && lecturer.departmentName ? `${lecturer.departmentId} - ${lecturer.departmentName}` : lecturer.departmentId || 'N/A'}
+                          {lecturer.departmentId && lecturer.departmentName
+                            ? `${lecturer.departmentId} - ${lecturer.departmentName}`
+                            : lecturer.departmentId || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
                             {editingId === lecturer.lecturerId ? (
                               <>
-                                <button 
+                                <button
                                   onClick={saveEdit}
                                   className="p-2 bg-green-100 text-green-600 rounded-full hover:bg-green-200"
                                   title="Save"
                                 >
                                   <Save size={16} />
                                 </button>
-                                <button 
-                                  onClick={()=>setEditingId(null)}
+                                <button
+                                  onClick={() => setEditingId(null)}
                                   className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200"
                                   title="Cancel"
                                 >
@@ -567,14 +653,15 @@ const AdminLecturerManager = () => {
                             ) : (
                               <>
                                 <button
-                                  onClick={() =>{
+                                  onClick={() => {
                                     setEditingId(lecturer.lecturerId);
                                     setEditData({
                                       name: lecturer.name,
                                       dateOfBirth: lecturer.dateOfBirth,
-                                      teachingExperience: lecturer.teachingExperience,
+                                      teachingExperience:
+                                        lecturer.teachingExperience,
                                       academicTitle: lecturer.academicTitle,
-                                      departmentId: lecturer.departmentId
+                                      departmentId: lecturer.departmentId,
                                     });
                                   }}
                                   className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200"
@@ -583,12 +670,14 @@ const AdminLecturerManager = () => {
                                   <Edit size={16} />
                                 </button>
                                 <button
-                                  onClick={() => deleteLecturer(lecturer.lecturerId)}
+                                  onClick={() =>
+                                    deleteLecturer(lecturer.lecturerId)
+                                  }
                                   disabled={deleting} // 禁用按钮当正在删除时
                                   className={`p-2 rounded-full ${
-                                    deleting 
-                                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                      : 'bg-red-100 text-red-600 hover:bg-red-200'
+                                    deleting
+                                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                      : "bg-red-100 text-red-600 hover:bg-red-200"
                                   }`}
                                   title="Delete"
                                 >
@@ -603,7 +692,110 @@ const AdminLecturerManager = () => {
                   </tbody>
                 </table>
               </div>
-              
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xs:block md:hidden">
+                {currentLecturers.map((lecturer) => (
+                  <div
+                    key={lecturer.lecturerId}
+                    className="bg-white shadow rounded-xl p-5 flex flex-col justify-between hover:shadow-lg transition-shadow mb-3"
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-3">
+                      <h2 className="text-lg font-semibold text-gray-800">
+                        {lecturer.name}
+                      </h2>
+                      <span className="text-sm text-gray-500 font-medium">
+                        ID: {lecturer.lecturerId}
+                      </span>
+                    </div>
+
+                    {/* Lecturer Info */}
+                    <div className="text-sm text-gray-600 space-y-1 mb-4">
+                      <p>
+                        <span className="font-medium text-gray-700">
+                          Date of Birth:
+                        </span>{" "}
+                        {lecturer.dateOfBirth}
+                      </p>
+                      <p>
+                        <span className="font-medium text-gray-700">
+                          Teaching Experience:
+                        </span>{" "}
+                        {lecturer.teachingExperience} years
+                      </p>
+                      <p>
+                        <span className="font-medium text-gray-700">
+                          Academic Title:
+                        </span>{" "}
+                        {lecturer.academicTitle || "N/A"}
+                      </p>
+                      <p>
+                        <span className="font-medium text-gray-700">
+                          Department:
+                        </span>{" "}
+                        {lecturer.departmentId && lecturer.departmentName
+                          ? `${lecturer.departmentId} - ${lecturer.departmentName}`
+                          : lecturer.departmentId || "N/A"}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end space-x-2 border-t pt-3">
+                      {editingId === lecturer.lecturerId ? (
+                        <>
+                          <button
+                            onClick={saveEdit}
+                            className="p-2 bg-green-100 text-green-600 rounded-full hover:bg-green-200"
+                            title="Save"
+                          >
+                            <Save size={16} />
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200"
+                            title="Cancel"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingId(lecturer.lecturerId);
+                              setEditData({
+                                name: lecturer.name,
+                                dateOfBirth: lecturer.dateOfBirth,
+                                teachingExperience: lecturer.teachingExperience,
+                                academicTitle: lecturer.academicTitle,
+                                departmentId: lecturer.departmentId,
+                              });
+                            }}
+                            className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => deleteLecturer(lecturer.lecturerId)}
+                            disabled={deleting}
+                            className={`p-2 rounded-full ${
+                              deleting
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-red-100 text-red-600 hover:bg-red-200"
+                            }`}
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-6">
@@ -612,42 +804,42 @@ const AdminLecturerManager = () => {
                       onClick={prevPage}
                       disabled={currentPage === 1}
                       className={`flex items-center px-3 py-1 rounded-md ${
-                        currentPage === 1 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        currentPage === 1
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       <ChevronLeft size={16} />
-                      <span className="ml-1">Previous</span>
+                      <span className="ml-1 xs:text-xs md:text-sm">Previous</span>
                     </button>
-                    
+
                     {[...Array(totalPages)].map((_, index) => {
                       const pageNumber = index + 1;
                       return (
                         <button
                           key={pageNumber}
                           onClick={() => paginate(pageNumber)}
-                          className={`w-10 h-10 rounded-full ${
+                          className={`xs:w-8 xs:h-8 md:w-10 md:h-10 rounded-full ${
                             currentPage === pageNumber
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
                           {pageNumber}
                         </button>
                       );
                     })}
-                    
+
                     <button
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
                       className={`flex items-center px-3 py-1 rounded-md ${
-                        currentPage === totalPages 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        currentPage === totalPages
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      <span className="mr-1">Next</span>
+                      <span className="mr-1 xs:text-xs md:text-sm">Next</span>
                       <ChevronRight size={16} />
                     </button>
                   </nav>
@@ -655,7 +847,7 @@ const AdminLecturerManager = () => {
               )}
             </>
           )}
-          
+
           {/* Edit Form */}
           {editingId && (
             // 修改为与学生管理页面相同的样式
@@ -663,15 +855,17 @@ const AdminLecturerManager = () => {
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">Edit Lecturer</h3>
-                    <button 
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Edit Lecturer
+                    </h3>
+                    <button
                       onClick={() => setEditingId(null)}
                       className="text-gray-500 hover:text-gray-700"
                     >
                       <X size={24} />
                     </button>
                   </div>
-                  
+
                   <ModernForm>
                     <FormRow>
                       {/* Personal Information */}
@@ -679,42 +873,53 @@ const AdminLecturerManager = () => {
                         <FormSection title="Personal Information">
                           <FormGroup>
                             <FormLabel>Lecturer ID</FormLabel>
-                            <FormInput
-                              type="text"
-                              value={editingId}
-                              disabled
-                            />
+                            <FormInput type="text" value={editingId} disabled />
                           </FormGroup>
-                          
+
                           <FormGroup>
                             <FormLabel>Full Name</FormLabel>
                             <FormInput
                               type="text"
-                              value={editData.name|| ''}
-                              onChange={(e) => setEditData({...editData, name: e.target.value})}
+                              value={editData.name || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  name: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
-                          
+
                           <FormGroup>
                             <FormLabel>Date of Birth</FormLabel>
                             <FormInput
                               type="date"
-                              value={editData.dateOfBirth || ''}
-                              onChange={(e) => setEditData({...editData, dateOfBirth: e.target.value})}
+                              value={editData.dateOfBirth || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  dateOfBirth: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
-                          
+
                           <FormGroup>
                             <FormLabel>Academic Title</FormLabel>
                             <FormInput
                               type="text"
-                              value={editData.academicTitle || ''}
-                              onChange={(e) => setEditData({...editData, academicTitle: e.target.value})}
+                              value={editData.academicTitle || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  academicTitle: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
                         </FormSection>
                       </div>
-                      
+
                       {/* Professional Information */}
                       <div>
                         <FormSection title="Professional Information">
@@ -722,20 +927,33 @@ const AdminLecturerManager = () => {
                             <FormLabel>Teaching Experience (years)</FormLabel>
                             <FormInput
                               type="number"
-                              value={editData.teachingExperience|| 0}
-                              onChange={(e) => setEditData({...editData, teachingExperience: e.target.value})}
+                              value={editData.teachingExperience || 0}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  teachingExperience: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
-                          
+
                           <FormGroup>
                             <FormLabel>Department</FormLabel>
                             <FormSelect
-                              value={editData.departmentId || ''}
-                              onChange={(e) => setEditData({...editData, departmentId: e.target.value})}
+                              value={editData.departmentId || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  departmentId: e.target.value,
+                                })
+                              }
                             >
                               <option value="">Select Department</option>
-                              {departments.map(dept => (
-                                <option key={dept.departmentId} value={dept.departmentId}>
+                              {departments.map((dept) => (
+                                <option
+                                  key={dept.departmentId}
+                                  value={dept.departmentId}
+                                >
                                   {dept.departmentName}
                                 </option>
                               ))}
@@ -744,7 +962,7 @@ const AdminLecturerManager = () => {
                         </FormSection>
                       </div>
                     </FormRow>
-                    
+
                     <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
                       <FormButton
                         type="button"
@@ -753,7 +971,7 @@ const AdminLecturerManager = () => {
                       >
                         Cancel
                       </FormButton>
-                      
+
                       <FormButton
                         type="button"
                         variant="success"
@@ -768,7 +986,7 @@ const AdminLecturerManager = () => {
             </div>
           )}
         </div>
-        
+
         {/* 删除确认对话框 */}
         <CustomConfirmDialog
           isOpen={showConfirmDialog}
@@ -786,4 +1004,3 @@ const AdminLecturerManager = () => {
 };
 
 export default AdminLecturerManager;
-

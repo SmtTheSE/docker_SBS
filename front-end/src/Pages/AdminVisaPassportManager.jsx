@@ -1,8 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Save, Edit, X, Trash2, ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
-import axiosInstance from '../utils/axiosInstance';
-import { ModernForm, FormGroup, FormRow, FormLabel, FormInput, FormSelect, FormButton, FormSection } from '../Components/ModernForm';
-import CustomConfirmDialog from '../Components/CustomConfirmDialog';
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Plus,
+  Save,
+  Edit,
+  X,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Filter,
+} from "lucide-react";
+import axiosInstance from "../utils/axiosInstance";
+import {
+  ModernForm,
+  FormGroup,
+  FormRow,
+  FormLabel,
+  FormInput,
+  FormSelect,
+  FormButton,
+  FormSection,
+} from "../Components/ModernForm";
+import CustomConfirmDialog from "../Components/CustomConfirmDialog";
 
 const AdminVisaPassportManager = () => {
   const [visaPassports, setVisaPassports] = useState([]);
@@ -11,31 +30,31 @@ const AdminVisaPassportManager = () => {
   const [editData, setEditData] = useState({});
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createData, setCreateData] = useState({
-    visaPassportId: '',
-    studentId: '',
-    visaId: '',
-    visaIssuedDate: '',
-    visaExpiredDate: '',
+    visaPassportId: "",
+    studentId: "",
+    visaId: "",
+    visaIssuedDate: "",
+    visaExpiredDate: "",
     visaType: 0, // 0 = Single Entry, 1 = Multiple Entry
-    passportNumber: '',
-    passportIssuedDate: '',
-    passportExpiredDate: ''
- });
+    passportNumber: "",
+    passportIssuedDate: "",
+    passportExpiredDate: "",
+  });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [visaPassportIdToDelete, setVisaPassportIdToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false); // 添加删除状态
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  
+
   // Search and filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    student: '',
-    visaType: '',
-    dateFrom: '',
-    dateTo: ''
+    student: "",
+    visaType: "",
+    dateFrom: "",
+    dateTo: "",
   });
 
   useEffect(() => {
@@ -45,17 +64,17 @@ const AdminVisaPassportManager = () => {
 
   const fetchVisaPassports = async () => {
     try {
-      const response = await axiosInstance.get('/admin/visa-passports');
+      const response = await axiosInstance.get("/admin/visa-passports");
       setVisaPassports(response.data);
     } catch (error) {
-      console.error('Failed to fetch visa passports:', error);
+      console.error("Failed to fetch visa passports:", error);
       // Log more details about the error
-      console.error('Error details:', {
+      console.error("Error details:", {
         message: error.message,
         code: error.code,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
       });
     }
   };
@@ -63,16 +82,16 @@ const AdminVisaPassportManager = () => {
   // 获取学生数据
   const fetchStudents = async () => {
     try {
-      const response = await axiosInstance.get('/admin/students');
+      const response = await axiosInstance.get("/admin/students");
       setStudents(response.data);
     } catch (error) {
-      console.error('Failed to fetch students:', error);
+      console.error("Failed to fetch students:", error);
     }
   };
 
   // 获取学生姓名
   const getStudentName = (studentId) => {
-    const student = students.find(s => s.studentId === studentId);
+    const student = students.find((s) => s.studentId === studentId);
     return student ? `${student.firstName} ${student.lastName}` : studentId;
   };
 
@@ -84,37 +103,41 @@ const AdminVisaPassportManager = () => {
 
   // Handle filter change
   const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
     setCurrentPage(1); // Reset to first page when filtering
   };
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchTerm('');
+    setSearchTerm("");
     setFilters({
-      student: '',
-      visaType: '',
-      dateFrom: '',
-      dateTo: ''
+      student: "",
+      visaType: "",
+      dateFrom: "",
+      dateTo: "",
     });
     setCurrentPage(1);
   };
 
   // Filter and search visa passports
   const filteredVisaPassports = useMemo(() => {
-    return visaPassports.filter(record => {
+    return visaPassports.filter((record) => {
       // Apply search term filter
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         const studentName = getStudentName(record.studentId).toLowerCase();
-        if (!(record.visaPassportId.toLowerCase().includes(term) ||
-              record.studentId.toLowerCase().includes(term) ||
-              record.visaId.toLowerCase().includes(term) ||
-              record.passportNumber.toLowerCase().includes(term) ||
-              studentName.includes(term))) {
+        if (
+          !(
+            record.visaPassportId.toLowerCase().includes(term) ||
+            record.studentId.toLowerCase().includes(term) ||
+            record.visaId.toLowerCase().includes(term) ||
+            record.passportNumber.toLowerCase().includes(term) ||
+            studentName.includes(term)
+          )
+        ) {
           return false;
         }
       }
@@ -122,8 +145,12 @@ const AdminVisaPassportManager = () => {
       // Apply student filter (ID or name)
       if (filters.student) {
         const studentTerm = filters.student.toLowerCase();
-        const studentIdMatch = record.studentId.toLowerCase().includes(studentTerm);
-        const studentNameMatch = getStudentName(record.studentId).toLowerCase().includes(studentTerm);
+        const studentIdMatch = record.studentId
+          .toLowerCase()
+          .includes(studentTerm);
+        const studentNameMatch = getStudentName(record.studentId)
+          .toLowerCase()
+          .includes(studentTerm);
         if (!studentIdMatch && !studentNameMatch) {
           return false;
         }
@@ -140,19 +167,27 @@ const AdminVisaPassportManager = () => {
         const visaExpired = new Date(record.visaExpiredDate);
         const passportIssued = new Date(record.passportIssuedDate);
         const passportExpired = new Date(record.passportExpiredDate);
-        
+
         if (filters.dateFrom) {
           const fromDate = new Date(filters.dateFrom);
-          if (visaIssued < fromDate && visaExpired < fromDate && 
-              passportIssued < fromDate && passportExpired < fromDate) {
+          if (
+            visaIssued < fromDate &&
+            visaExpired < fromDate &&
+            passportIssued < fromDate &&
+            passportExpired < fromDate
+          ) {
             return false;
           }
         }
-        
+
         if (filters.dateTo) {
           const toDate = new Date(filters.dateTo);
-          if (visaIssued > toDate && visaExpired > toDate && 
-              passportIssued > toDate && passportExpired > toDate) {
+          if (
+            visaIssued > toDate &&
+            visaExpired > toDate &&
+            passportIssued > toDate &&
+            passportExpired > toDate
+          ) {
             return false;
           }
         }
@@ -171,14 +206,14 @@ const AdminVisaPassportManager = () => {
 
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   // Previous page
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   // Next page
   const nextPage = () => {
     const totalPages = Math.ceil(filteredVisaPassports.length / itemsPerPage);
@@ -189,68 +224,87 @@ const AdminVisaPassportManager = () => {
 
   const createNewVisaPassport = async () => {
     // Validation
-    if (!createData.visaPassportId || !createData.studentId || !createData.visaId || 
-        !createData.visaIssuedDate || !createData.visaExpiredDate || !createData.passportNumber ||
-        !createData.passportIssuedDate || !createData.passportExpiredDate) {
-      alert('Please fill in all required fields');
+    if (
+      !createData.visaPassportId ||
+      !createData.studentId ||
+      !createData.visaId ||
+      !createData.visaIssuedDate ||
+      !createData.visaExpiredDate ||
+      !createData.passportNumber ||
+      !createData.passportIssuedDate ||
+      !createData.passportExpiredDate
+    ) {
+      alert("Please fill in all required fields");
       return;
     }
 
     try {
-      const response = await axiosInstance.post('/admin/visa-passports', createData);
-      
-      alert('Visa/Passport record created successfully!');
-      
+      const response = await axiosInstance.post(
+        "/admin/visa-passports",
+        createData
+      );
+
+      alert("Visa/Passport record created successfully!");
+
       // Reset form
       setCreateData({
-        visaPassportId: '',
-        studentId: '',
-        visaId: '',
-        visaIssuedDate: '',
-        visaExpiredDate: '',
+        visaPassportId: "",
+        studentId: "",
+        visaId: "",
+        visaIssuedDate: "",
+        visaExpiredDate: "",
         visaType: 0,
-        passportNumber: '',
-        passportIssuedDate: '',
-        passportExpiredDate: ''
+        passportNumber: "",
+        passportIssuedDate: "",
+        passportExpiredDate: "",
       });
       setShowCreateForm(false);
       setCurrentPage(1); // Reset to first page
       fetchVisaPassports(); // Refresh the list
     } catch (error) {
-      console.error('Create error:', error);
+      console.error("Create error:", error);
       // Log more details about the error
-      console.error('Error details:', {
+      console.error("Error details:", {
         message: error.message,
         code: error.code,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
       });
-      alert('Network error occurred while creating visa/passport record: ' + (error.response?.data?.message || error.message));
+      alert(
+        "Network error occurred while creating visa/passport record: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
   const saveEdit = async () => {
     try {
-      const response = await axiosInstance.put(`/admin/visa-passports/${editingId}`, {
-        ...editData,
-        visaPassportId: editingId
-      });
-      
-      alert('Visa/Passport record updated successfully!');
+      const response = await axiosInstance.put(
+        `/admin/visa-passports/${editingId}`,
+        {
+          ...editData,
+          visaPassportId: editingId,
+        }
+      );
+
+      alert("Visa/Passport record updated successfully!");
       setEditingId(null);
       fetchVisaPassports(); // Refresh the list
     } catch (error) {
-      console.error('Update error:', error);
+      console.error("Update error:", error);
       // Log more details about the error
-      console.error('Error details:', {
+      console.error("Error details:", {
         message: error.message,
         code: error.code,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
       });
-      alert('Network error occurred while updating visa/passport record: ' + (error.response?.data?.message || error.message));
+      alert(
+        "Network error occurred while updating visa/passport record: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -262,26 +316,33 @@ const AdminVisaPassportManager = () => {
   const confirmDelete = async () => {
     setDeleting(true); // 设置删除状态
     try {
-      await axiosInstance.delete(`/admin/visa-passports/${visaPassportIdToDelete}`);
-      
-      alert('Visa/Passport record deleted successfully!');
+      await axiosInstance.delete(
+        `/admin/visa-passports/${visaPassportIdToDelete}`
+      );
+
+      alert("Visa/Passport record deleted successfully!");
       // If we're on the last page and it becomes empty, go to previous page
-      const totalPages = Math.ceil((filteredVisaPassports.length - 1) / itemsPerPage);
+      const totalPages = Math.ceil(
+        (filteredVisaPassports.length - 1) / itemsPerPage
+      );
       if (currentPage > totalPages && totalPages > 0) {
         setCurrentPage(totalPages);
       }
       fetchVisaPassports(); // Refresh the list
     } catch (error) {
-      console.error('Delete error:', error);
+      console.error("Delete error:", error);
       // Log more details about the error
-      console.error('Error details:', {
+      console.error("Error details:", {
         message: error.message,
         code: error.code,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
       });
-      alert('Network error occurred while deleting visa/passport record: ' + (error.response?.data?.message || error.message));
+      alert(
+        "Network error occurred while deleting visa/passport record: " +
+          (error.response?.data?.message || error.message)
+      );
     } finally {
       setDeleting(false); // 重置删除状态
       setShowConfirmDialog(false);
@@ -295,27 +356,33 @@ const AdminVisaPassportManager = () => {
   };
 
   const getVisaTypeText = (visaType) => {
-    return visaType === 1 ? 'Multiple Entry' : 'Single Entry';
+    return visaType === 1 ? "Multiple Entry" : "Single Entry";
   };
 
   // Get current visa/passport records
   const currentVisaPassports = getCurrentVisaPassports();
   const totalPages = Math.ceil(filteredVisaPassports.length / itemsPerPage);
-  
+
   // Check if any filters are active
-  const hasActiveFilters = searchTerm || filters.student || filters.visaType || filters.dateFrom || filters.dateTo;
+  const hasActiveFilters =
+    searchTerm ||
+    filters.student ||
+    filters.visaType ||
+    filters.dateFrom ||
+    filters.dateTo;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="xs:p-2 md:p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-4">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="xs:text-lg md:text-3xl font-bold text-gray-800">
               Admin Panel - Visa/Passport Management
             </h1>
-            <p className="text-gray-600">
-              Manage student visa and passport information • Total: {filteredVisaPassports.length}
+            <p className="text-gray-600 xs:text-xs md:text-lg">
+              Manage student visa and passport information • Total:{" "}
+              {filteredVisaPassports.length}
             </p>
           </div>
 
@@ -324,7 +391,7 @@ const AdminVisaPassportManager = () => {
             onClick={() => setShowCreateForm(!showCreateForm)}
           >
             <Plus size={20} />
-            {showCreateForm ? 'Cancel' : 'Create New Record'}
+            <h1 className="xs:hidden md:block">{showCreateForm ? "Cancel" : "Create New Record"}</h1>
           </FormButton>
         </div>
 
@@ -344,23 +411,23 @@ const AdminVisaPassportManager = () => {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             {/* Student Filter */}
             <div>
               <input
                 type="text"
                 value={filters.student}
-                onChange={(e) => handleFilterChange('student', e.target.value)}
+                onChange={(e) => handleFilterChange("student", e.target.value)}
                 placeholder="Filter by Student ID or Name"
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             {/* Visa Type Filter */}
             <div>
               <select
                 value={filters.visaType}
-                onChange={(e) => handleFilterChange('visaType', e.target.value)}
+                onChange={(e) => handleFilterChange("visaType", e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               >
                 <option value="">All Visa Types</option>
@@ -368,7 +435,7 @@ const AdminVisaPassportManager = () => {
                 <option value="1">Multiple Entry</option>
               </select>
             </div>
-            
+
             {/* Date Range Filter */}
             <div className="relative">
               <details className="group">
@@ -376,24 +443,32 @@ const AdminVisaPassportManager = () => {
                   <Filter className="mr-2 h-4 w-4" />
                   <span>Date Range</span>
                 </summary>
-                
+
                 <div className="mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700">From</label>
+                      <label className="block text-xs font-medium text-gray-700">
+                        From
+                      </label>
                       <input
                         type="date"
                         value={filters.dateFrom}
-                        onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange("dateFrom", e.target.value)
+                        }
                         className="mt-1 block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700">To</label>
+                      <label className="block text-xs font-medium text-gray-700">
+                        To
+                      </label>
                       <input
                         type="date"
                         value={filters.dateTo}
-                        onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange("dateTo", e.target.value)
+                        }
                         className="mt-1 block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                       />
                     </div>
@@ -402,55 +477,59 @@ const AdminVisaPassportManager = () => {
               </details>
             </div>
           </div>
-          
+
           {/* Active Filters Display */}
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Active filters:</span>
-              
+              <span className="text-sm font-medium text-gray-700">
+                Active filters:
+              </span>
+
               {searchTerm && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Search: {searchTerm}
-                  <button 
-                    onClick={() => setSearchTerm('')}
+                  <button
+                    onClick={() => setSearchTerm("")}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
-              
+
               {filters.student && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Student: {filters.student}
-                  <button 
-                    onClick={() => handleFilterChange('student', '')}
+                  <button
+                    onClick={() => handleFilterChange("student", "")}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
-              
+
               {filters.visaType && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Visa Type: {filters.visaType === '0' ? 'Single Entry' : 'Multiple Entry'}
-                  <button 
-                    onClick={() => handleFilterChange('visaType', '')}
+                  Visa Type:{" "}
+                  {filters.visaType === "0" ? "Single Entry" : "Multiple Entry"}
+                  <button
+                    onClick={() => handleFilterChange("visaType", "")}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
-              
+
               {(filters.dateFrom || filters.dateTo) && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Date Range: {filters.dateFrom || '...'} to {filters.dateTo || '...'}
-                  <button 
+                  Date Range: {filters.dateFrom || "..."} to{" "}
+                  {filters.dateTo || "..."}
+                  <button
                     onClick={() => {
-                      handleFilterChange('dateFrom', '');
-                      handleFilterChange('dateTo', '');
+                      handleFilterChange("dateFrom", "");
+                      handleFilterChange("dateTo", "");
                     }}
                     className="ml-1 inline-flex h-4 w-4 rounded-full items-center justify-center text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
                   >
@@ -458,7 +537,7 @@ const AdminVisaPassportManager = () => {
                   </button>
                 </span>
               )}
-              
+
               <button
                 onClick={clearFilters}
                 className="ml-2 px-3 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -476,15 +555,17 @@ const AdminVisaPassportManager = () => {
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">Create New Visa/Passport Record</h3>
-                  <button 
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Create New Visa/Passport Record
+                  </h3>
+                  <button
                     onClick={() => setShowCreateForm(false)}
                     className="text-gray-500 hover:text-gray-700"
                   >
-                    <X size={24}/>
+                    <X size={24} />
                   </button>
                 </div>
-                
+
                 <ModernForm>
                   <FormSection title="Visa Information">
                     <FormRow>
@@ -493,66 +574,96 @@ const AdminVisaPassportManager = () => {
                         <FormInput
                           type="text"
                           value={createData.visaPassportId}
-                          onChange={(e) => setCreateData({...createData, visaPassportId: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              visaPassportId: e.target.value,
+                            })
+                          }
                           placeholder="e.g., VP001"
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel required>Student ID</FormLabel>
                         <FormInput
                           type="text"
                           value={createData.studentId}
-                          onChange={(e) => setCreateData({...createData, studentId: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              studentId: e.target.value,
+                            })
+                          }
                           placeholder="e.g., STU001"
                         />
                       </FormGroup>
                     </FormRow>
-                    
+
                     <FormRow>
                       <FormGroup>
                         <FormLabel required>Visa ID</FormLabel>
                         <FormInput
                           type="text"
                           value={createData.visaId}
-                          onChange={(e) => setCreateData({...createData, visaId: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              visaId: e.target.value,
+                            })
+                          }
                           placeholder="e.g., VISA123"
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel required>Visa Type</FormLabel>
                         <FormSelect
                           value={createData.visaType}
-                          onChange={(e) => setCreateData({...createData, visaType: parseInt(e.target.value)})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              visaType: parseInt(e.target.value),
+                            })
+                          }
                         >
                           <option value={0}>Single Entry</option>
                           <option value={1}>Multiple Entry</option>
                         </FormSelect>
                       </FormGroup>
                     </FormRow>
-                    
+
                     <FormRow>
                       <FormGroup>
                         <FormLabel required>Visa Issued Date</FormLabel>
                         <FormInput
                           type="date"
                           value={createData.visaIssuedDate}
-                          onChange={(e) => setCreateData({...createData, visaIssuedDate: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              visaIssuedDate: e.target.value,
+                            })
+                          }
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel required>Visa Expired Date</FormLabel>
                         <FormInput
                           type="date"
                           value={createData.visaExpiredDate}
-                          onChange={(e) => setCreateData({...createData, visaExpiredDate: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              visaExpiredDate: e.target.value,
+                            })
+                          }
                         />
                       </FormGroup>
                     </FormRow>
                   </FormSection>
-                  
+
                   <FormSection title="Passport Information">
                     <FormRow>
                       <FormGroup>
@@ -560,33 +671,48 @@ const AdminVisaPassportManager = () => {
                         <FormInput
                           type="text"
                           value={createData.passportNumber}
-                          onChange={(e) => setCreateData({...createData, passportNumber: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              passportNumber: e.target.value,
+                            })
+                          }
                           placeholder="e.g., P12345678"
                         />
                       </FormGroup>
                     </FormRow>
-                    
+
                     <FormRow>
                       <FormGroup>
                         <FormLabel required>Passport Issued Date</FormLabel>
                         <FormInput
                           type="date"
                           value={createData.passportIssuedDate}
-                          onChange={(e) => setCreateData({...createData, passportIssuedDate: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              passportIssuedDate: e.target.value,
+                            })
+                          }
                         />
                       </FormGroup>
-                      
+
                       <FormGroup>
                         <FormLabel required>Passport Expired Date</FormLabel>
                         <FormInput
                           type="date"
                           value={createData.passportExpiredDate}
-                          onChange={(e) => setCreateData({...createData, passportExpiredDate: e.target.value})}
+                          onChange={(e) =>
+                            setCreateData({
+                              ...createData,
+                              passportExpiredDate: e.target.value,
+                            })
+                          }
                         />
                       </FormGroup>
                     </FormRow>
                   </FormSection>
-                  
+
                   <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
                     <FormButton
                       type="button"
@@ -594,22 +720,22 @@ const AdminVisaPassportManager = () => {
                       onClick={() => {
                         setShowCreateForm(false);
                         setCreateData({
-                          visaPassportId: '',
-                          studentId: '',
-                          visaId: '',
-                          visaIssuedDate: '',
-                          visaExpiredDate: '',
+                          visaPassportId: "",
+                          studentId: "",
+                          visaId: "",
+                          visaIssuedDate: "",
+                          visaExpiredDate: "",
                           visaType: 0,
-                          passportNumber: '',
-                          passportIssuedDate: '',
-                          passportExpiredDate: ''
+                          passportNumber: "",
+                          passportIssuedDate: "",
+                          passportExpiredDate: "",
                         });
                       }}
                     >
                       <X size={20} />
                       Cancel
                     </FormButton>
-                    
+
                     <FormButton
                       type="button"
                       variant="success"
@@ -634,8 +760,8 @@ const AdminVisaPassportManager = () => {
           {filteredVisaPassports.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500 text-lg">
-                {visaPassports.length === 0 
-                  ? "No visa/passport records yet" 
+                {visaPassports.length === 0
+                  ? "No visa/passport records yet"
                   : "No visa/passport records match your search criteria"}
               </p>
               {hasActiveFilters && (
@@ -646,7 +772,7 @@ const AdminVisaPassportManager = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-lg shadow">
+              <div className="overflow-x-auto rounded-lg shadow xs:hidden md:block">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -678,12 +804,16 @@ const AdminVisaPassportManager = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentVisaPassports.map((record) => (
-                      <tr key={record.visaPassportId} className="hover:bg-gray-50">
+                      <tr
+                        key={record.visaPassportId}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {record.visaPassportId}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {record.studentId} - {getStudentName(record.studentId)}
+                          {record.studentId} -{" "}
+                          {getStudentName(record.studentId)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {record.visaId}
@@ -714,7 +844,7 @@ const AdminVisaPassportManager = () => {
                                 visaType: record.visaType,
                                 passportNumber: record.passportNumber,
                                 passportIssuedDate: record.passportIssuedDate,
-                                passportExpiredDate: record.passportExpiredDate
+                                passportExpiredDate: record.passportExpiredDate,
                               });
                             }}
                             className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 mr-2"
@@ -722,14 +852,16 @@ const AdminVisaPassportManager = () => {
                           >
                             <Edit size={16} />
                           </button>
-                          
+
                           <button
-                            onClick={() => deleteVisaPassport(record.visaPassportId)}
+                            onClick={() =>
+                              deleteVisaPassport(record.visaPassportId)
+                            }
                             disabled={deleting} // 禁用按钮当正在删除时
                             className={`p-2 rounded-full ${
-                              deleting 
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                : 'bg-red-100 text-red-600 hover:bg-red-200'
+                              deleting
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-red-100 text-red-600 hover:bg-red-200"
                             }`}
                             title="Delete"
                           >
@@ -741,7 +873,112 @@ const AdminVisaPassportManager = () => {
                   </tbody>
                 </table>
               </div>
-              
+
+              <div className="block md:hidden space-y-4 xs:block md:hidden">
+                {currentVisaPassports.map((record) => (
+                  <div
+                    key={record.visaPassportId}
+                    className="bg-white shadow rounded-lg p-4 border border-gray-100 hover:shadow-md transition"
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-sm font-semibold text-gray-800">
+                        Visa Passport ID:{" "}
+                        <span className="text-blue-600">
+                          {record.visaPassportId}
+                        </span>
+                      </h3>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingId(record.visaPassportId);
+                            setEditData({
+                              studentId: record.studentId,
+                              visaId: record.visaId,
+                              visaIssuedDate: record.visaIssuedDate,
+                              visaExpiredDate: record.visaExpiredDate,
+                              visaType: record.visaType,
+                              passportNumber: record.passportNumber,
+                              passportIssuedDate: record.passportIssuedDate,
+                              passportExpiredDate: record.passportExpiredDate,
+                            });
+                          }}
+                          className="p-1.5 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200"
+                          title="Edit"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            deleteVisaPassport(record.visaPassportId)
+                          }
+                          disabled={deleting}
+                          className={`p-1.5 rounded-full ${
+                            deleting
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-red-100 text-red-600 hover:bg-red-200"
+                          }`}
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="text-sm text-gray-700 space-y-2">
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Student:
+                        </span>{" "}
+                        {record.studentId} – {getStudentName(record.studentId)}
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Visa ID:
+                        </span>{" "}
+                        {record.visaId}
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Visa Dates:
+                        </span>
+                        <div className="ml-4 text-gray-500 text-xs">
+                          <div>Issued: {record.visaIssuedDate}</div>
+                          <div>Expired: {record.visaExpiredDate}</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Visa Type:
+                        </span>{" "}
+                        {getVisaTypeText(record.visaType)}
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Passport Number:
+                        </span>{" "}
+                        {record.passportNumber}
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Passport Dates:
+                        </span>
+                        <div className="ml-4 text-gray-500 text-xs">
+                          <div>Issued: {record.passportIssuedDate}</div>
+                          <div>Expired: {record.passportExpiredDate}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-6">
@@ -750,15 +987,15 @@ const AdminVisaPassportManager = () => {
                       onClick={prevPage}
                       disabled={currentPage === 1}
                       className={`flex items-center px-3 py-1 rounded-md ${
-                        currentPage === 1 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        currentPage === 1
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       <ChevronLeft size={16} />
                       <span className="ml-1">Previous</span>
                     </button>
-                    
+
                     {[...Array(totalPages)].map((_, index) => {
                       const pageNumber = index + 1;
                       return (
@@ -767,22 +1004,22 @@ const AdminVisaPassportManager = () => {
                           onClick={() => paginate(pageNumber)}
                           className={`w-10 h-10 rounded-full ${
                             currentPage === pageNumber
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
                           {pageNumber}
                         </button>
                       );
                     })}
-                    
+
                     <button
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
                       className={`flex items-center px-3 py-1 rounded-md ${
-                        currentPage === totalPages 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        currentPage === totalPages
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       <span className="mr-1">Next</span>
@@ -793,7 +1030,7 @@ const AdminVisaPassportManager = () => {
               )}
             </>
           )}
-          
+
           {/* Edit Modal */}
           {editingId && (
             // 修改为与其他管理页面相同的样式
@@ -801,15 +1038,17 @@ const AdminVisaPassportManager = () => {
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">Edit Visa/Passport Record</h3>
-                    <button 
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Edit Visa/Passport Record
+                    </h3>
+                    <button
                       onClick={() => setEditingId(null)}
                       className="text-gray-500 hover:text-gray-700"
                     >
-                      <X size={24}/>
+                      <X size={24} />
                     </button>
                   </div>
-                  
+
                   <ModernForm>
                     <FormRow>
                       {/* Visa Information */}
@@ -819,45 +1058,74 @@ const AdminVisaPassportManager = () => {
                             <FormLabel required>Student ID</FormLabel>
                             <FormInput
                               type="text"
-                              value={editData.studentId || ''}
-                              onChange={(e) => setEditData({...editData, studentId: e.target.value})}
+                              value={editData.studentId || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  studentId: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
-                          
+
                           <FormGroup>
                             <FormLabel required>Visa ID</FormLabel>
                             <FormInput
                               type="text"
-                              value={editData.visaId || ''}
-                              onChange={(e) => setEditData({...editData, visaId: e.target.value})}
+                              value={editData.visaId || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  visaId: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
-                          
+
                           <FormRow>
                             <FormGroup>
                               <FormLabel required>Visa Issued Date</FormLabel>
                               <FormInput
                                 type="date"
-                                value={editData.visaIssuedDate || ''}
-                                onChange={(e) => setEditData({...editData, visaIssuedDate: e.target.value})}
+                                value={editData.visaIssuedDate || ""}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    visaIssuedDate: e.target.value,
+                                  })
+                                }
                               />
                             </FormGroup>
-                            
+
                             <FormGroup>
                               <FormLabel required>Visa Expired Date</FormLabel>
                               <FormInput
                                 type="date"
-                                value={editData.visaExpiredDate || ''}
-                                onChange={(e) => setEditData({...editData, visaExpiredDate: e.target.value})}
+                                value={editData.visaExpiredDate || ""}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    visaExpiredDate: e.target.value,
+                                  })
+                                }
                               />
                             </FormGroup>
                           </FormRow>
-                          
+
                           <FormGroup>
                             <FormLabel required>Visa Type</FormLabel>
                             <FormSelect
-                              value={editData.visaType !== undefined ? editData.visaType : 0}
-                              onChange={(e) => setEditData({...editData, visaType: parseInt(e.target.value)})}
+                              value={
+                                editData.visaType !== undefined
+                                  ? editData.visaType
+                                  : 0
+                              }
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  visaType: parseInt(e.target.value),
+                                })
+                              }
                             >
                               <option value={0}>Single Entry</option>
                               <option value={1}>Multiple Entry</option>
@@ -865,7 +1133,7 @@ const AdminVisaPassportManager = () => {
                           </FormGroup>
                         </FormSection>
                       </div>
-                      
+
                       {/* Passport Information */}
                       <div>
                         <FormSection title="Passport Information">
@@ -873,34 +1141,53 @@ const AdminVisaPassportManager = () => {
                             <FormLabel required>Passport Number</FormLabel>
                             <FormInput
                               type="text"
-                              value={editData.passportNumber || ''}
-                              onChange={(e) => setEditData({...editData, passportNumber: e.target.value})}
+                              value={editData.passportNumber || ""}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  passportNumber: e.target.value,
+                                })
+                              }
                             />
                           </FormGroup>
-                          
+
                           <FormRow>
                             <FormGroup>
-                              <FormLabel required>Passport Issued Date</FormLabel>
+                              <FormLabel required>
+                                Passport Issued Date
+                              </FormLabel>
                               <FormInput
                                 type="date"
-                                value={editData.passportIssuedDate || ''}
-                                onChange={(e) => setEditData({...editData, passportIssuedDate: e.target.value})}
+                                value={editData.passportIssuedDate || ""}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    passportIssuedDate: e.target.value,
+                                  })
+                                }
                               />
                             </FormGroup>
-                            
+
                             <FormGroup>
-                              <FormLabel required>Passport Expired Date</FormLabel>
+                              <FormLabel required>
+                                Passport Expired Date
+                              </FormLabel>
                               <FormInput
                                 type="date"
-                                value={editData.passportExpiredDate || ''}
-                                onChange={(e) => setEditData({...editData, passportExpiredDate: e.target.value})}
+                                value={editData.passportExpiredDate || ""}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    passportExpiredDate: e.target.value,
+                                  })
+                                }
                               />
                             </FormGroup>
                           </FormRow>
                         </FormSection>
                       </div>
                     </FormRow>
-                    
+
                     <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
                       <FormButton
                         type="button"
@@ -909,7 +1196,7 @@ const AdminVisaPassportManager = () => {
                       >
                         Cancel
                       </FormButton>
-                      
+
                       <FormButton
                         type="button"
                         variant="success"
