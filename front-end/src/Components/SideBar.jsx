@@ -1,18 +1,23 @@
 import{ faUser } from "@fortawesome/free-regular-svg-icons";
 import {
   faAngleDown,
+  faBars,
   faGraduationCap,
   faHome,
   faListCheck,
   faListOl,
-  faRoute
+  faRoute,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import useAdminSideBar from "../Hook/useAdminSideBar";
 
 const SideBar = () => {
   const location = useLocation();
+  const { collapsed, setCollapsed } = useAdminSideBar();
   const [sideBarMenus, setSideBarMenus] = useState([
     {
       id: 1,
@@ -20,7 +25,7 @@ const SideBar = () => {
       icon: faHome,
       link: "/",
       isCurrent: true,
-      children: null,
+      children: [],
     },
     {
       id: 2,
@@ -40,7 +45,7 @@ const SideBar = () => {
           id: 2,
           name: "Transcripts",
           icon: faListOl,
-          link: "/transcripts",
+          link: "/academic/transcripts",
           isCurrent: true,
        },
         {
@@ -77,158 +82,141 @@ const SideBar = () => {
     },
  ]);
 
-  // 根据当前路径更新菜单状态
   useEffect(() => {
-    // 检查顶级菜单
-    const updatedMenus = sideBarMenus.map(menu => {
-      // 检查是否是顶级菜单项
-      if (location.pathname === menu.link) {
-        return { ...menu, isCurrent: true };
-      }
-      
-      // 检查子菜单项
+    const currentPath = location.pathname;
+    const updatedMenus = sideBarMenus.map((menu) => {
+      let isParentCurrent = false;
+      let hasActiveChild = false;
+
       if (menu.children) {
-        // 检查是否有子菜单项匹配当前路径
-        const hasActiveChild = menu.children.some(child => location.pathname === child.link);
-        const updatedChildren = menu.children.map(child => ({
+        hasActiveChild = menu.children.some(
+          (child) => currentPath === child.link
+        );
+        const updatedChildren = menu.children.map((child) => ({
           ...child,
-          isCurrent: location.pathname === child.link
+          isCurrent: currentPath === child.link,
         }));
-        
-        return { 
-          ...menu, 
-          isCurrent: hasActiveChild || location.pathname.startsWith(menu.link), 
-          children: updatedChildren 
+
+        isParentCurrent = hasActiveChild;
+
+        return {
+          ...menu,
+          isCurrent: isParentCurrent,
+          children: updatedChildren,
         };
       }
-      
-      // 默认情况保持原状态
-      return { ...menu, isCurrent: location.pathname === menu.link };
-    });
-    
-    setSideBarMenus(updatedMenus);
-  }, [location.pathname]);
 
-  // Handle top-level menu clicks
+      return { ...menu, isCurrent: currentPath === menu.link };
+    });
+
+    setSideBarMenus(updatedMenus);
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleMenus = (id) => {
     setSideBarMenus((prevMenus) =>
       prevMenus.map((menu) =>
         menu.id === id
           ? { ...menu, isCurrent: !menu.isCurrent }
-          : menu.id === 2 || menu.id === 3 ? { ...menu, isCurrent: false } : menu
-)
-    );
-  };
-
-  // Handle Academic child menu clicks without affecting top-level menus
-  const academicMenuHandler = (id) => {
-    setSideBarMenus((prevMenus) =>
-      prevMenus.map((menu) =>
-        menu.id === 2 // Academic menu
-          ? {
-              ...menu,
-children: menu.children.map((child) =>
-                child.id === id
-                  ? { ...child, isCurrent: true }
-                  : { ...child, isCurrent: false }
-              ),
-            }
-          : menu
-      )
-    );
-  };
-  
-  // Handle Profile child menu clicks without affecting top-level menus
-  const profileMenuHandler = (id) => {
-    setSideBarMenus((prevMenus) =>
-      prevMenus.map((menu) =>
-        menu.id === 3 // Profile menu
-          ? {
-              ...menu,
-children: menu.children.map((child) =>
-                child.id === id
-                  ? { ...child, isCurrent: true }
-                  : { ...child, isCurrent: false }
-              ),
-            }
-          : menu
+          : { ...menu, isCurrent: false }
       )
     );
   };
 
   return (
-    <nav className="fixed bg-iconic w-64 h-screen flex flex-col justify-start items-start gap-8 p-3 shadow-xl">
-      {sideBarMenus.map((menu, index) =>
-        menu.children == null ? (
-          <Link
-            key={menu.id}
-            to={menu.link}
-            className={`text-lg p-3 ${
-              menu.isCurrent ? "bg-white text-iconic" : "text-white hover:bg-red-700"
-            } w-full rounded-lg flex items-center transition-all duration-300 transform hover:scale-[1.02] shadow hover:shadow-md ${index === 0 ? 'mt-4' : ''}`}
-            onClick={() => handleMenus(menu.id)}
-          >
-            <FontAwesomeIcon icon={menu.icon} className="w-5 h-5 mr-2" />
-            {menu.name}
-          </Link>
+    <motion.nav
+      animate={{ width: collapsed ? "6rem" : "18rem" }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className={`fixed z-10 bg-gray-900 h-screen flex flex-col justify-start items-start shadow-2xl xs:p-2 md:p-4 overflow-y-auto overflow-x-hidden xs:right-0 xs:${
+        collapsed ? "hidden" : "block"
+      } md:left-0 md:block transition-all duration-300`}
+    >
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="text-gray-300 w-full p-3 rounded-lg hover:bg-gray-700 transition-colors mb-4 flex items-center justify-center xs:hidden md:block"
+      >
+        {collapsed ? (
+          <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
         ) : (
-          <div
-            key={menu.id}
-            className={`text-lg p-3 w-full rounded-lg flex flex-col cursor-pointer transition-all duration-300 transform hover:scale-[1.02] shadow hover:shadow-md ${
-              menu.isCurrent
-                ? "bg-white text-iconic"
-                : "text-white hover:bg-red-700"
-            } ${index === 0 ? 'mt-4' : ''}`}
-          >
-            <div 
-              className="flex justify-between items-center w-full"
+          <FontAwesomeIcon icon={faXmark} className="w-6 h-6" />
+        )}
+      </button>
+
+      <div className="flex flex-col w-full gap-3">
+        {sideBarMenus.map((menu) =>
+          menu.children.length === 0 ? (
+            <Link
+              key={menu.id}
+              to={menu.link}
+              className={`flex ${
+                collapsed ? "justify-center" : "justify-start"
+              } items-center gap-3 p-3 rounded-lg transition-colors duration-200 ${
+                menu.isCurrent
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
+              }`}
               onClick={() => handleMenus(menu.id)}
             >
-              <div className="flex items-center gap-2">
-                <FontAwesomeIcon icon={menu.icon} className="w-5 h-5" />
-                <span>{menu.name}</span>
-              </div>
-              <FontAwesomeIcon
-                icon={faAngleDown}
-                className={`transform transition-transform duration-300 w-4 h-4 ${
-                  menu.isCurrent ? "rotate-180" : "rotate-0"
+              <FontAwesomeIcon icon={menu.icon} className="w-5 h-5 flex-shrink-0" />
+              {!collapsed && <span className="whitespace-nowrap font-medium text-sm">{menu.name}</span>}
+            </Link>
+          ) : (
+            <div key={menu.id} className="w-full flex flex-col">
+              <div
+                className={`flex ${
+                  collapsed ? "justify-center" : "justify-between"
+                } items-center cursor-pointer p-3 rounded-lg transition-colors duration-200 ${
+                  menu.isCurrent
+                    ? "bg-gray-700 text-white"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
                 }`}
-              />
-            </div>
-
-            {/* Child Menu */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              menu.isCurrent ? "max-h-96 opacity-100 mt-2" : "max-h-0 opacity-0"
-            }`}>
-              <div className="ml-6 flex flex-col gap-1 text-sm text-gray-700">
-                {menu.children.map((child) => (
-                  <Link
-                    key={child.id}
-                    to={child.link}
-                    className={`transition-all duration-200 text-base py-2 px-3 rounded flex items-center ${
-                      child.isCurrent
-                        ? "text-iconic font-bold bg-red-50"
-                        : "hover:text-iconic hover:bg-red-50"
+                onClick={() => handleMenus(menu.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <FontAwesomeIcon icon={menu.icon} className="w-5 h-5 flex-shrink-0" />
+                  {!collapsed && <span className="whitespace-nowrap font-medium text-sm">{menu.name}</span>}
+                </div>
+                {!collapsed && (
+                  <FontAwesomeIcon
+                    icon={faAngleDown}
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      menu.isCurrent ? "rotate-180" : "rotate-0"
                     }`}
-                    onClick={(e) => {
-                      e.stopPropagation(); // prevent parent click
-                      if (menu.id === 2) {
-                        academicMenuHandler(child.id);
-                      } else if (menu.id === 3) {
-                        profileMenuHandler(child.id);
-                      }
-                    }}
-                  >
-                    <FontAwesomeIcon icon={child.icon} className="w-3 h-3 mr-2" />
-                    {child.name}
-                  </Link>
-                ))}
+                  />
+                )}
               </div>
+
+              <motion.div
+                animate={{
+                  height: menu.isCurrent && !collapsed ? "auto" : 0,
+                  opacity: menu.isCurrent && !collapsed ? 1 : 0,
+                  marginTop: menu.isCurrent && !collapsed ? "0.5rem" : 0,
+                }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col gap-2 pl-4">
+                  {menu.children.map((child) => (
+                    <Link
+                      key={child.id}
+                      to={child.link}
+                      className={`py-2 px-3 rounded-md flex items-center transition-colors duration-200 ${
+                        child.isCurrent
+                          ? "text-white font-semibold bg-gray-700/50"
+                          : "text-gray-400 hover:text-white hover:bg-gray-800"
+                      }`}
+                      onClick={() => setCollapsed(!collapsed)}
+                    >
+                      <FontAwesomeIcon icon={child.icon} className="w-4 h-4 mr-3 flex-shrink-0" />
+                      {!collapsed && <span className="text-xs">{child.name}</span>}
+                    </Link>
+                  ))}
+                </div>
+              </motion.div>
             </div>
-          </div>
-        )
-      )}
-    </nav>
+          )
+        )}
+      </div>
+    </motion.nav>
   );
 };
 

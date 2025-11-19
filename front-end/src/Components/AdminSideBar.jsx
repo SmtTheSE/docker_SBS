@@ -313,7 +313,6 @@ const AdminSideBar = () => {
                         ? "text-iconic font-bold bg-red-50"
                         : "hover:text-iconic hover:bg-red-50"
                     }`}
-                    onClick={() => setCollapsed(!collapsed)}
                   >
                     <FontAwesomeIcon
                       icon={child.icon}
